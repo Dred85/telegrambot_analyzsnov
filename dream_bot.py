@@ -1,9 +1,13 @@
 import logging
+import os
 import random
 from typing import Dict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
+from dotenv import load_dotenv
 
+# Загружаем переменные окружения из .env файла
+load_dotenv()
 # Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -343,7 +347,8 @@ def main():
 
 
 if __name__ == '__main__':
-    application = Application.builder().token("7550321001:AAEVX5_gN48IZ7lgyDkyoJa5QPEIAGIjka4").build()
+    TOKEN = os.getenv('BOT_TOKEN')
+    application = Application.builder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
