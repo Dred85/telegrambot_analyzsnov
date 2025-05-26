@@ -1,7 +1,6 @@
 import logging
 import random
-import re
-from typing import Dict, List
+from typing import Dict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 
@@ -253,38 +252,26 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def analyze_dream_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Анализирует сон пользователя"""
-    user_id = update.from_user.id
-    dream_text = update.message.text
+    user_id = update.effective_user.id
+    message_text = update.message.text
 
-    # Инициализация данных пользователя
-    if user_id not in bot.user_data:
-        bot.user_data[user_id] = {'style': 'mystical', 'dreams_count': 0, 'total_mystery': 0}
-
-    # Получаем стиль пользователя
-    user_style = bot.user_data[user_id].get('style', 'mystical')
+    # Получаем стиль пользователя, если нет — используем по умолчанию
+    user_style = bot.user_data.get(user_id, {}).get('style', 'mystical')
 
     # Анализируем сон
-    analysis = bot.analyze_dream(dream_text, user_style)
+    analysis = bot.analyze_dream(message_text, style=user_style)
+    response = bot.format_analysis(analysis)
 
-    # Обновляем статистику
-    bot.user_data[user_id]['dreams_count'] += 1
-    bot.user_data[user_id]['total_mystery'] += analysis['mystery_level']
+    # Обновляем статистику пользователя
+    if user_id not in bot.user_data:
+        bot.user_data[user_id] = {}
 
-    # Форматируем и отправляем результат
-    result_text = bot.format_analysis(analysis)
-    await update.message.reply_text(result_text)
+    bot.user_data[user_id]['dreams_count'] = bot.user_data[user_id].get('dreams_count', 0) + 1
+    bot.user_data[user_id]['total_mystery'] = bot.user_data[user_id].get('total_mystery', 0) + analysis['mystery_level']
+    bot.user_data[user_id]['style'] = user_style
 
-    # Предлагаем дополнительные действия
-    keyboard = [
-        [InlineKeyboardButton("🎨 Сменить стиль", callback_data="change_style")],
-        [InlineKeyboardButton("📊 Статистика", callback_data="show_stats")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(response)
 
-    await update.message.reply_text(
-        "Хочешь попробовать другой стиль анализа или посмотреть статистику?",
-        reply_markup=reply_markup
-    )
 
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -332,7 +319,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     """Запуск бота"""
     # Замени 'YOUR_BOT_TOKEN' на токен твоего бота
-    TOKEN = 'YOUR_BOT_TOKEN'
+    TOKEN = '7550321001:AAEVX5_gN48IZ7lgyDkyoJa5QPEIAGIjka4'
 
     # Создаем приложение
     application = Application.builder().token(TOKEN).build()
@@ -356,4 +343,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    application = Application.builder().token("7550321001:AAEVX5_gN48IZ7lgyDkyoJa5QPEIAGIjka4").build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("style", style_command))
+    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CallbackQueryHandler(style_callback, pattern="^style_"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, analyze_dream_message))
+
+    application.run_polling()
