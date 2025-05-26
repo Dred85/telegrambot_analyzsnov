@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 # Загружаем переменные окружения из .env файла
 load_dotenv()
+TOKEN = os.getenv('BOT_TOKEN')
 # Настройка логирования
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -322,8 +323,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Запуск бота"""
-    # Замени 'YOUR_BOT_TOKEN' на токен твоего бота
-    TOKEN = '7550321001:AAEVX5_gN48IZ7lgyDkyoJa5QPEIAGIjka4'
 
     # Создаем приложение
     application = Application.builder().token(TOKEN).build()
@@ -347,7 +346,7 @@ def main():
 
 
 if __name__ == '__main__':
-    TOKEN = os.getenv('BOT_TOKEN')
+
     application = Application.builder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
