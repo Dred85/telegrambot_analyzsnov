@@ -462,7 +462,7 @@ def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, analyze_dream_message))
     
     # Запускаем бота
-    print("Бот запущен...")
+    print("Бот запущен ;)")
     application.run_polling()
 
 if __name__ == '__main__':
