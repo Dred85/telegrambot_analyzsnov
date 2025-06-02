@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  dreambot:
+    build: .
+    env_file:
+      - .env
+    container_name: dream-analyzer-bot
+    restart: unless-stopped
