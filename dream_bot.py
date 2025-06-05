@@ -442,6 +442,27 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Ошибка в button_callback: {e}")
         await update.callback_query.message.reply_text("Произошла ошибка. Попробуйте позже.")
 
+
+async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    admin_ids = list(map(int, os.getenv("ADMIN_IDS", "").split(",")))
+
+    if user_id not in admin_ids:
+        await update.message.reply_text("❌ У вас нет доступа к админ-панели.")
+        return
+
+    keyboard = [
+        [InlineKeyboardButton("📋 Посмотреть пользователей", callback_data="admin_users")],
+        [InlineKeyboardButton("📁 Экспортировать данные", callback_data="admin_export")],
+        [InlineKeyboardButton("📢 Рассылка", callback_data="admin_broadcast")],
+        [InlineKeyboardButton("⚙️ Управление символами", callback_data="admin_symbols")],
+        [InlineKeyboardButton("📊 Статистика", callback_data="admin_stats")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("🔐 Добро пожаловать в админ-панель!", reply_markup=reply_markup)
+
+
+
 def main():
     """Запуск бота"""
     # Создаем приложение
@@ -452,6 +473,7 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("style", style_command))
     application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("admin", admin_command))
     
     # Обработчики callback кнопок - ВАЖНО: порядок имеет значение!
     # Сначала более специфичные паттерны, потом общие
